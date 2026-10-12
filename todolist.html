@@ -1,0 +1,271 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My To Do List</title>
+
+    <style>
+        /* General styles */
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-width: 250px;
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+        }
+
+        /* Remove default list spacing */
+        ul {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        /* Task items */
+        ul li {
+            cursor: pointer;
+            position: relative;
+            padding: 12px 45px 12px 40px;
+            background: #eee;
+            font-size: 18px;
+            transition: background-color 0.2s;
+            user-select: none;
+            overflow-wrap: anywhere;
+        }
+
+        /* Alternate row colors */
+        ul li:nth-child(odd) {
+            background: #f9f9f9;
+        }
+
+        /* Hover effect */
+        ul li:hover {
+            background: #ddd;
+        }
+
+        /* Completed task */
+        ul li.checked {
+            background: #888;
+            color: white;
+            text-decoration: line-through;
+        }
+
+        /* Check mark */
+        ul li.checked::before {
+            content: "";
+            position: absolute;
+            border-color: white;
+            border-style: solid;
+            border-width: 0 2px 2px 0;
+            top: 12px;
+            left: 16px;
+            transform: rotate(45deg);
+            height: 12px;
+            width: 6px;
+        }
+
+        /* Delete button */
+        .close {
+            position: absolute;
+            right: 0;
+            top: 0;
+            padding: 12px 16px;
+            text-decoration: none;
+            line-height: 20px;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            background-color: #f44336;
+            color: white;
+        }
+
+        /* Header */
+        .header {
+            background-color: #f44336;
+            padding: 30px 40px;
+            color: white;
+            text-align: center;
+        }
+
+        .header h2 {
+            margin: 5px 0 20px;
+        }
+
+        /* Input and Add button container */
+        .input-container {
+            display: flex;
+            width: 100%;
+        }
+
+        input {
+            margin: 0;
+            border: none;
+            border-radius: 0;
+            width: 75%;
+            padding: 12px;
+            font-size: 16px;
+            min-width: 0;
+        }
+
+        input:focus {
+            outline: 2px solid #333;
+            outline-offset: -2px;
+        }
+
+        .addBtn {
+            padding: 12px;
+            width: 25%;
+            background: #d9d9d9;
+            color: #555;
+            text-align: center;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            border: none;
+        }
+
+        .addBtn:hover {
+            background-color: #bbb;
+        }
+
+        /* Task counter */
+        .task-count {
+            text-align: center;
+            padding: 15px;
+            color: #555;
+            font-size: 14px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Header -->
+    <div class="header" id="myDIV">
+        <h2>My To Do List</h2>
+
+        <div class="input-container">
+            <input
+                type="text"
+                id="myInput"
+                placeholder="Enter a task..."
+                aria-label="New task"
+            >
+            <button type="button" class="addBtn" onclick="newElement()">
+                Add
+            </button>
+        </div>
+    </div>
+
+    <!-- Task list -->
+    <ul id="myUL">
+        <li>Go to Movie</li>
+        <li class="checked">Pay bills</li>
+        <li>Meet a Friend</li>
+        <li>Buy Clothes</li>
+        <li>Read a book</li>
+        <li>Organize Things</li>
+    </ul>
+
+    <div class="task-count" id="taskCount" aria-live="polite"></div>
+
+    <script>
+        const myInput = document.getElementById("myInput");
+        const myUL = document.getElementById("myUL");
+        const taskCount = document.getElementById("taskCount");
+
+        // Create a delete button for a task
+        function addCloseButton(li) {
+            const span = document.createElement("span");
+
+            span.className = "close";
+            span.textContent = "\u00D7";
+            span.setAttribute("role", "button");
+            span.setAttribute("tabindex", "0");
+            span.setAttribute("aria-label", "Delete task");
+
+            span.addEventListener("click", function (event) {
+                event.stopPropagation();
+                li.remove();
+                updateTaskCount();
+            });
+
+            span.addEventListener("keydown", function (event) {
+                if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    li.remove();
+                    updateTaskCount();
+                }
+            });
+
+            li.appendChild(span);
+        }
+
+        // Add delete buttons to existing tasks
+        const existingTasks = myUL.querySelectorAll("li");
+
+        existingTasks.forEach(function (li) {
+            addCloseButton(li);
+        });
+
+        // Mark tasks as completed or incomplete
+        myUL.addEventListener("click", function (event) {
+            if (event.target.tagName === "LI") {
+                event.target.classList.toggle("checked");
+                updateTaskCount();
+            }
+        });
+
+        // Add a new task
+        function newElement() {
+            const inputValue = myInput.value.trim();
+
+            if (inputValue === "") {
+                alert("You must write something!");
+                myInput.focus();
+                return;
+            }
+
+            const li = document.createElement("li");
+            li.appendChild(document.createTextNode(inputValue));
+
+            addCloseButton(li);
+            myUL.appendChild(li);
+
+            myInput.value = "";
+            myInput.focus();
+
+            updateTaskCount();
+        }
+
+        // Allow Enter key to add tasks
+        myInput.addEventListener("keydown", function (event) {
+            if (event.key === "Enter") {
+                newElement();
+            }
+        });
+
+        // Display task totals
+        function updateTaskCount() {
+            const tasks = myUL.querySelectorAll("li");
+            const completed = myUL.querySelectorAll("li.checked");
+
+            taskCount.textContent =
+                tasks.length + " tasks total | " +
+                completed.length + " completed | " +
+                (tasks.length - completed.length) + " remaining";
+        }
+
+        // Initialize counter
+        updateTaskCount();
+    </script>
+
+</body>
+</html>
